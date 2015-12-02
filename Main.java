@@ -1,37 +1,47 @@
-package datacom21;
+package datakom;
 
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main {
-	public static void main(String[] args) {
-		int port = 1637;
-		ceratNode(port, null);
-		try {
-			ceratNode(port+1, new Socket("127.0.0.1", port));
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	private static void ceratNode(int port, Socket s) {
+	//public static ArrayList<RunNode> nodes;
+	public static ServerSocket server = null;
 	
-		   Thread loop = new Thread()
-		   {
-		      public void run()
-		      {
-		      System.out.println("h:" + port);
-		        	node b = new node(port, s);
-		       
-		      }
-		   };
-		   loop.start();
+	public static void main(String[] args) {
+		//nodes = new ArrayList<RunNode>();
+		int port = 1549;
+		ExecutorService executor = Executors.newFixedThreadPool(5);
+		for (int i = 0; i < 3; i++) {
+			creatNode(port + i, executor);
 		}
 		
+		//executor.execute(worker);
+	  	
+	      executor.shutdown();
+	      while (!executor.isTerminated()) {
+	      }
+	      System.out.println("Finished all threads");
+
+	}
+
+	private static void creatNode(int port, ExecutorService exec) {
+		        
+		       // for (int i = 0; i < 2; i++) {
+		        	//System.out.println("i="+i);
+		        	
+		        		  Runnable worker = new node(port, server);
+		        		  exec.execute(worker);
+		        		  
+		          		  
+		
+		//}
+	}
+		
+	  
 	
 }
