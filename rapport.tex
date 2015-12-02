@@ -1,0 +1,118 @@
+%-------------
+% PACKAGES %%
+%-------------
+\documentclass[12pt]{article}
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[nottoc,numbib]{tocbibind}
+
+\begin{document}
+
+%-------------------------
+%	uncomment irrelevant 
+%	parts, like logo etc
+%-------------------------
+
+\begin{titlepage}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % Defines a new command for the horizontal lines, change thickness here
+
+\begin{center}
+%---------------------
+%	HEADING SECTIONS
+%---------------------
+\textsc{\LARGE Uppsala University}\\[1.5cm] % Name of your university/college
+\textsc{\Large Computer Networks and Distributed Systems, 10c}\\[0.5cm] % Major heading such as course name
+\textsc{\large }\\[0.5cm] % Minor heading such as course title
+
+%------------------
+%	TITLE SECTION
+%------------------
+\HRule \\[0.4cm]
+{ \huge \bfseries Project, 1c}\\[0.4cm] % Title of your document
+\HRule \\[1.5cm]
+ 
+%--------------------
+%	AUTHOR SECTION
+%--------------------
+% \begin{minipage}{1.4\textwidth}
+% \begin{flushleft} 
+
+\large\emph{Author:}\\Ashraf, Pouya\\
+					Billman, Linnar\\
+					Boström, Carl\\
+					Emrén, Krister\\[1.0cm]% Your name
+
+% \end{flushleft}
+% \end{minipage}
+
+%---------------------
+%	Supervisor
+%---------------------
+% \begin{minipage}{0.4\textwidth}
+% \begin{flushright} \large
+% \emph{Supervisor:} \\
+% Dr. James \textsc{Smith} % Supervisor's Name
+% \end{flushright}
+% \end{minipage}\\[2cm]
+
+% If you don't want a supervisor, uncomment the two lines below and remove the section above
+%\Large \emph{Author:}\\
+%John \textsc{Smith}\\[3cm] % Your name
+
+{\large \today}\\[2cm] % Date
+
+%----------
+%	LOGO 
+%----------
+% \includegraphics[width=2in]{logga.png}\\%[1cm]
+\end{center}
+\end{titlepage}
+\pagebreak
+%-------------------------
+%	Table of Contents
+%-------------------------
+\tableofcontents
+\pagebreak
+
+\section{summary} % (fold)
+\label{sec:summary}
+This project had the aim to explore how one may approach the task of creating a system that runs on a distributed system, and how to solve the problems that occur with that task
+% section summary (end)
+
+\section{Introduction} % (fold)
+\label{sec:introduction}
+For this project we chose to implement a distributed buffer of sorts, which in turn implements a distributed server polling system, to ensure that the system will not fail when the designated server crashes/goes down (when the current server crashes, or loses connection with the connected nodes, a different node will take the erver responsibilities.).
+% section introduction (end)
+
+\section{The System} % (fold)
+\label{sec:the_system}
+The system consists of $<$X$>$ main parts, outlined below.
+
+\subsection{Node.java} % (fold)
+\label{sub:node_java}
+
+
+
+\subsubsection{The Server Switching Mechanism} % (fold)
+\label{ssub:the_server_switching_mechanism}
+
+% subsubsection the_server_switching_mechanism (end)
+% subsection node_java (end)
+% section the_system (end)
+
+%------------------------------------------
+%	picture, copy and paste appropriately
+%------------------------------------------
+% \begin{figure}[H] %	Absolute positioning
+% \centering
+% \includegraphics[width=0.8\textwidth]{picture.png}
+% \caption{\label{fig:picture}Caption}
+% \end{figure}
+
+\end{document}
