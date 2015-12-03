@@ -16,6 +16,12 @@ private ServerSocket socket;
 private ArrayList<Socket> listOfSocket;
 private ArrayList<String> stringListOfSocket;
 
+/**
+ * initialises a node object
+ *
+ * @param      port    The port number
+ * @param      server  The IP-adress of the server
+ */
 public node(int port, ServerSocket server){
 	
 	
@@ -74,6 +80,11 @@ public void run(){
 	   
 }
 
+/**
+ * Sends a list of connected nodes, as a string consisting of IP and port number
+ *
+ * @param      out   The outgoing socket.
+ */
 public void sendList(PrintWriter out ){
 	out.println(listOfSocket.size());
 	for(int i = 0; i < listOfSocket.size(); i++) {
@@ -81,6 +92,14 @@ public void sendList(PrintWriter out ){
 		out.println(s.getInetAddress() + "," + s.getPort());
 	}
 }
+
+/**
+ * receives a list of connected nodes in the network (IP and port number)
+ *
+ * @param      in           ingoing socket
+ *
+ * @throws     IOException  regular IOException
+ */
 public void recieveList(BufferedReader in) throws IOException {
 	this.stringListOfSocket = new ArrayList<String>();
 	int x = Integer.parseInt(in.readLine());
