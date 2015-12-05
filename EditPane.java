@@ -11,9 +11,8 @@ public class EditPane extends TextArea {
 			"Praesent et congue magna. Integer egestas porta odio, vel tincidunt lectus posuere vel. Curabitur cursus pretium venenatis. Donec pretium sapien nulla, at eleifend ante maximus a. Nullam ullamcorper, ex non bibendum vestibulum, dui enim facilisis ligula, ut sodales leo odio eget justo. Quisque condimentum tristique libero eu scelerisque. Aliquam magna erat, malesuada vel tempus quis, viverra ac orci. Proin a sem et lorem commodo luctus a quis ante. Proin sed erat vulputate, congue magna id, condimentum quam.";
 		
     public EditPane() {
-	super(30, 60);
-	setText(lorem);
-	// TODO Auto-generated constructor stub
+		super(30, 60);
+		setText(lorem);
     }
     
 }

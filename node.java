@@ -65,258 +65,224 @@ public class node implements Runnable{
     }
     
     public void run(){
-	try {
-	    System.out.println("here "+ rank);
-	    String[] s;
-	    if(this.rank == 0){
-		while(true){ 
-		    String input = getPacket();
-		    switch(input.charAt(0)) {
-		    case 'J':
-		    	System.out.println("Server get: " + input);
-		    	SocketAddress newNode = packet.getSocketAddress();
-		    	
-		    	for(int i = 0; i < listOfSocket.size(); i++ ) {
-			    putPacket("N" + newNode.toString(), listOfSocket.get(i));
-		    	}
-		    	sendList(newNode);
-		    	listOfSocket.add(newNode);
-			break;
-		    case 'L':
-			s = input.substring(1).split(":");
-			int nodeID = Integer.parseInt(s[0].trim());
-			int offset = Integer.parseInt(s[1].trim());
-			int length = Integer.parseInt(s[2].trim());
-			
-			if(this.firstLock == null){
-			    firstLock = new LockList(offset, length);
-			}
-			else{
-			    LockList l = this.firstLock;
-			    while(l.nextLockList != null && (l.getOffset() < offset)){
-				l = l.getNext();
+		try {
+		    System.out.println("here "+ rank);
+		    String[] s;
+		    if(this.rank == 0){
+				while(true){ 
+				    String input = getPacket();
+			    	System.out.println("Server get: " + input);
+				    switch(input.charAt(0)) {
+				    case 'J':
+				    	SocketAddress newNode = packet.getSocketAddress();
+				    	editWindow.addNode(newNode);
+				    	for(int i = 0; i < listOfSocket.size(); i++ ) {
+				    		putPacket("N" + newNode.toString(), listOfSocket.get(i));
+				    	}
+				    	sendList(newNode);
+				    	listOfSocket.add(newNode);
+					break;
+				    case 'L':
+						s = input.substring(1).split(":");
+						int nodeID = Integer.parseInt(s[0].trim());
+						int offset = Integer.parseInt(s[1].trim());
+						int length = Integer.parseInt(s[2].trim());
+						
+						System.out.println("Lock request: " + nodeID + "," + offset + "," + length);
+						if(this.firstLock == null){
+						    firstLock = new LockList(offset, length);
+						    editWindow.addLock(firstLock);
+					    	packetsToAll(input);
+						}
+						else{
+						    LockList l = LockList.findFirstAfter(this.firstLock, offset);
+						    if(l.getPrevious() == null) {
+						    	/* first entry has a higher offset, so insert before it */
+						    	if((offset + length) < l.getOffset()) {
+						    		/* ... assuming this lock ends before next starts */
+						    		firstLock = new LockList(offset, length, firstLock);
+						    		editWindow.addLock(firstLock);
+							    	packetsToAll(input);
+						    	}
+						    } else {
+						    	if((l.getPrevious().getOffset() + l.getPrevious().getLength()) < offset &&
+						    		((offset + length) < l.getOffset())) {
+						    		editWindow.addLock(new LockList(offset, length, l));
+						    		packetsToAll(input);
+						    	}
+						    }
+						}
+						break;
+				    case 'M':
+				    	s = input.substring(1).split(":");
+				    	nodeID = Integer.parseInt(s[0].trim());
+				    	offset = Integer.parseInt(s[1].trim());
+				    	length = Integer.parseInt(s[2].trim());
+				    	String txt = s[3];
+				    	LockList l = LockList.findByOffset(firstLock, offset);
+		
+				    	if(l != null) {
+				    		editWindow.updateText(txt, offset, offset + length);
+				        	for(int i = 0; i < listOfSocket.size(); i++ ) {
+				        		putPacket(input, listOfSocket.get(i));
+				        	}
+		
+				        	int delta = l.getLength() - length;
+				        	LockList afterL = l.getNext();
+				  	
+				        	while(afterL != null){
+				        		afterL.setOffset(afterL.getOffset()-delta);
+				        		afterL = afterL.getNext();
+				        	}
+				  	
+				        	if(l == firstLock) {
+				        		firstLock = l.getNext();
+				        	}
+				        	l.remove();
+				    	}
+				    	
+				    	break;
+				    }
+				}
+		    }else{
+				/*  client mode */
+				while(true) {
+				    String input = getPacket();
+				    
+				    System.out.println("" + rank + ": " + input);
+				    switch(input.charAt(0)) {
+				    case 'N':
+				    	s = input.substring(1).split(":");
+				    	SocketAddress sa = new InetSocketAddress(s[0], Integer.parseInt(s[1].trim()));
+				    	listOfSocket.add(sa);
+				    	editWindow.addNode(sa);
+				    	break;
+				    case 'L':
+				    	s = input.substring(1).split(":");
+				    	int nodeID = Integer.parseInt(s[0].trim());
+				    	int offset = Integer.parseInt(s[1].trim());
+				    	int length = Integer.parseInt(s[2].trim());
+				    	System.out.println("My rank: " + rank + ", node: " + nodeID);
+				    	if(nodeID == rank) {
+						    reqLockSem.release();
+						}
+						
+						if(this.firstLock == null){
+						    firstLock = new LockList(offset, length);
+						    editWindow.addLock(firstLock);
+						}
+						else{
+						    LockList l = LockList.findFirstAfter(this.firstLock, offset);
+						    if(l.getPrevious() == null) {
+						    	/* first entry has a higher offset, so insert before it */
+						    	if((offset + length) < l.getOffset()) {
+						    		/* ... assuming this lock ends before next starts */
+						    		firstLock = new LockList(offset, length, firstLock);
+						    		editWindow.addLock(firstLock);
+						    	}
+						    } else {
+						    	if((l.getPrevious().getOffset() + l.getPrevious().getLength()) < offset &&
+						    		((offset + length) < l.getOffset())) {
+						    		editWindow.addLock(new LockList(offset, length, l));
+						    	}
+						    }
+						}
+						break;
+				    case 'M':
+				    	s = input.substring(1).split(":");
+						nodeID = Integer.parseInt(s[0].trim());
+						offset = Integer.parseInt(s[1].trim());
+						length = Integer.parseInt(s[2].trim());
+						String txt = s[3];
+						editWindow.updateText(txt, offset, offset + length);
+				    	LockList l = LockList.findByOffset(firstLock, offset);
+		
+			        	int delta = l.getLength() - length;
+			        	LockList afterL = l.getNext();
+			  	
+			        	while(afterL != null){
+			        		afterL.setOffset(afterL.getOffset()-delta);
+			        		afterL = afterL.getNext();
+			        	}
+			  	
+			        	if(l == firstLock) {
+			        		firstLock = l.getNext();
+			        	}
+			        	l.remove();
+					}
+				    	
+					break;
 			    }
-			    l = l.previousLockList;
-			    if(l.getOffset() + l.getLength() < offset && (l.nextLockList.getOffset() > offset+length)){
-				new LockList(offset, length, l);
-				packetsToAll(input);
-			    }
 			}
-			break;
-		    case 'M':
-			s = input.substring(1).split(":");
-			nodeID = Integer.parseInt(s[0].trim());
-			offset = Integer.parseInt(s[1].trim());
-			length = Integer.parseInt(s[2].trim());
-			String txt = s[3];
-			editWindow.updateText(txt, offset, offset + length);
-		    	for(int i = 0; i < listOfSocket.size(); i++ ) {
-			    putPacket(input, listOfSocket.get(i));
-		    	}
-		    	LockList l = this.firstLock;
-			while(l != null && (l.getOffset() != offset)){
-			    l = l.getNext();
-			}
-			int delta = l.getLength() - length;
-			LockList afterL = l.nextLockList;
-		  	
-			while(afterL != null){
-			    afterL.setOffset(afterL.getOffset()-delta);
-			    afterL = afterL.nextLockList;
-			}
-		  	
-			if (l.getOffset() == offset){
-			    l.remove();
-			}
-		    	
-		    	break;
-		    }
-		}
-	    }else{
-		/*  client mode */
-		while(true) {
-		    String input = getPacket();
-		    
-		    System.out.println("" + rank + ": " + input);
-		    switch(input.charAt(0)) {
-		    case 'N':
-			s = input.substring(1).split(":");
-			listOfSocket.add(new InetSocketAddress(s[0], Integer.parseInt(s[1].trim())));
-			break;
-		    case 'L':
-			s = input.substring(1).split(":");
-			int nodeID = Integer.parseInt(s[0].trim());
-			int offset = Integer.parseInt(s[1].trim());
-			int length = Integer.parseInt(s[2].trim());
-			System.out.println("My rank: " + rank + ", node: " + nodeID);
-			if(nodeID == rank) {
-			    reqLockSem.release();
-			}
-			
-			if(this.firstLock == null){
-			    firstLock = new LockList(offset, length);
-			}
-			else{
-			    LockList l = this.firstLock;
-			    while(l.nextLockList != null && (l.getOffset() < offset)){
-				l = l.getNext();
-			    }
-			    l = l.previousLockList;
-			    if(l.getOffset() + l.getLength() < offset && (l.nextLockList.getOffset() > offset+length)){
-				new LockList(offset, length, l);
-				packetsToAll(input);
-			    }
-			}
-			break;
-		    case 'M':
-			s = input.substring(1).split(":");
-			nodeID = Integer.parseInt(s[0].trim());
-			offset = Integer.parseInt(s[1].trim());
-			length = Integer.parseInt(s[2].trim());
-			String txt = s[3];
-			editWindow.updateText(txt, offset, offset + length);
-			LockList l = this.firstLock;
-			while(l != null && (l.getOffset() != offset)){
-			    l = l.getNext();
-			}
-			int delta = l.getLength() - length;
-			LockList afterL = l.nextLockList;
-		  	
-			while(afterL != null){
-			    afterL.setOffset(afterL.getOffset()-delta);
-			    afterL = afterL.nextLockList;
-			}
-		  	
-			if (l.getOffset() == offset){
-			    l.remove();
-			}
-		    	
-			break;
-		    }
-		}
-	    }
-	} catch (IOException e) {
-	    e.printStackTrace();
-	}
-	
+		} catch (IOException e) {
+		    e.printStackTrace();
+		}	
     }
     
     public void packetsToAll(String messageString) throws IOException {
-	for(int i = 0; i < listOfSocket.size(); i++) {
-	    SocketAddress s = listOfSocket.get(i);
-	    putPacket(messageString, s);
+		for(int i = 0; i < listOfSocket.size(); i++) {
+		    SocketAddress s = listOfSocket.get(i);
+		    putPacket(messageString, s);
+		}
 	}
-    }
     
     public void sendList(SocketAddress sock) throws IOException {
-	putPacket("" + (listOfSocket.size() + 1), sock);
-	for(int i = 0; i < listOfSocket.size(); i++) {
-	    SocketAddress s = listOfSocket.get(i);
-	    putPacket(s.toString(), sock);
-	}
+		putPacket("" + (listOfSocket.size() + 1), sock);
+		for(int i = 0; i < listOfSocket.size(); i++) {
+		    SocketAddress s = listOfSocket.get(i);
+		    putPacket(s.toString(), sock);
+		}
     }
     
     public void recieveList() throws IOException {
-	this.listOfSocket = new ArrayList<SocketAddress>();
-	int x = Integer.parseInt(getPacket().trim());
-	this.rank = x;
-	System.out.println("My new rank is :" + this.rank);
-	listOfSocket.add(packet.getSocketAddress());
-	for (int i = 1; i < x; i++){
-	    String []s = getPacket().split(":");
-	    listOfSocket.add(new InetSocketAddress(s[0], Integer.parseInt(s[1].trim())));
-	}
-	
-	
+		this.listOfSocket = new ArrayList<SocketAddress>();
+		int x = Integer.parseInt(getPacket().trim());
+		this.rank = x;
+		System.out.println("My new rank is :" + this.rank);
+		listOfSocket.add(packet.getSocketAddress());
+		editWindow.addNode(packet.getSocketAddress());
+		for (int i = 1; i < x; i++){
+		    String []s = getPacket().split(":");
+	    	SocketAddress sa = new InetSocketAddress(s[0], Integer.parseInt(s[1].trim()));
+	    	listOfSocket.add(sa);
+	    	editWindow.addNode(sa);
+		}
     }
     
     private void putPacket(String str, SocketAddress dest) throws IOException {
-	System.out.println(str);
-	packet = new DatagramPacket(str.getBytes(), str.length(), dest);
-	socket.send(packet);
+    	//System.out.println("putPacket(" + str + "," + dest + ")");
+    	packet = new DatagramPacket(str.getBytes(), str.length(), dest);
+    	socket.send(packet);
     }
     
     private String getPacket() throws IOException {
-	receiveBuffer = new byte[BUFFER_SIZE];
-	packet = new DatagramPacket(receiveBuffer, BUFFER_SIZE);
-	socket.receive(packet);
-	return new String(receiveBuffer);
+    	receiveBuffer = new byte[BUFFER_SIZE];
+    	packet = new DatagramPacket(receiveBuffer, BUFFER_SIZE);
+    	socket.receive(packet);
+    	return new String(receiveBuffer).trim();
     }
     
     public void requestLock(int offset, int length) throws IOException {
-	if(rank == 0) {
+    	if(rank == 0) {
 	    
-	} else {
-	    String msg = "L" + rank + ":" + offset + ":" + length;
-	    putPacket(msg,listOfSocket.get(0));
-	    try {
-		reqLockSem.acquire();
-	    } catch (InterruptedException e) {
-		e.printStackTrace();
-	    }
-	}
+    	} else {
+    		String msg = "L" + rank + ":" + offset + ":" + length;
+    		putPacket(msg,listOfSocket.get(0));
+    		try {
+    			reqLockSem.acquire();
+    		} catch (InterruptedException e) {
+    			e.printStackTrace();
+    		}
+    	}
     }
     
     public void requestChange(String str, int offset, int length) throws IOException {
-	if(rank == 0) {
+    	if(rank == 0) {
 	    
-	} else {
-	    String msg = "M" + rank + ":" + offset + ":" + length + ":" + str;
-	    putPacket(msg,listOfSocket.get(0));
-	}
+    	} else {
+    		String msg = "M" + rank + ":" + offset + ":" + length + ":" + str;
+    		putPacket(msg,listOfSocket.get(0));
+    	}
     }
-    
-    
-    private class LockList {
-	
-	private LockList nextLockList;
-	private LockList previousLockList;
-	private int offset;
-	private int length;
-	
-	LockList(int offset, int length){
-	    this.nextLockList = null;
-	    this.previousLockList = null;
-	    this.offset = offset;
-	    this.length = length;	
-	}
-	
-	LockList(int offset, int length, LockList previous){
-	    this.nextLockList = previous.nextLockList;
-	    this.previousLockList = previous;
-	    this.offset = offset;
-	    this.length = length;
-	    previous.nextLockList = this;
-	}
-	
-	public void remove(){
-	    this.previousLockList.nextLockList = this.nextLockList;
-	    this.nextLockList.previousLockList = this.previousLockList;
-	}
-	
-	public int getOffset(){
-	    return this.offset;
-	}
-	
-	public int getLength(){
-	    return this.length;
-	}
-	
-	public LockList getNext(){
-	    return this.nextLockList;
-	}
-	
-	public LockList getPrevious(){
-	    return this.previousLockList;
-	}
-	
-	public void setOffset(int offset){
-	    this.offset = offset;
-	}
-	
-	public void setLength(int length){
-	    this.length = length;
-	}
-    }
-    
+
 }

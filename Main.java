@@ -14,21 +14,21 @@ public class Main {
     public static DatagramSocket server = null;
     
     public static void main(String[] args) {
-	int port = 1549;
-	ExecutorService executor = Executors.newFixedThreadPool(5);
-	for (int i = 0; i < 3 /*cookies*/; i++) {
-	    creatNode(port + i, executor);
-	}
-	
-	executor.shutdown();
-	while (!executor.isTerminated()) {
-	}
-	System.out.println("Finished all threads");
+		int port = 1549;
+		ExecutorService executor = Executors.newFixedThreadPool(5);
+		for (int i = 0; i < 3 /*cookies*/; i++) {
+		    creatNode(port + i, executor);
+		}
+		
+		executor.shutdown();
+		while (!executor.isTerminated()) {
+		}
+		System.out.println("Finished all threads");
 	
     }
     
     private static void creatNode(int port, ExecutorService exec) {
-	Runnable worker = new node(port, server);
-	exec.execute(worker);
+		Runnable worker = new node(port, server);
+		exec.execute(worker);
     }    
 }
