@@ -10,10 +10,10 @@ public class EditPane extends TextArea {
 			"Curabitur vel elementum ex. Praesent et est tortor. Vestibulum ultricies tincidunt velit nec cursus. Nam gravida mauris nec mi tincidunt, ac laoreet ligula tincidunt. Nunc gravida vulputate ipsum, ut lobortis urna volutpat eu. In hac habitasse platea dictumst. Nam suscipit suscipit consequat. Nunc ut fermentum nisl. Morbi nisi urna, vestibulum quis venenatis vitae, ultricies vel neque. Integer id sem ut ipsum euismod semper vel at ipsum. Aenean sodales egestas accumsan. Suspendisse ultricies, velit sed eleifend semper, purus dui commodo diam, nec pellentesque leo arcu eget nunc. Interdum et malesuada fames ac ante ipsum primis in faucibus. Praesent congue lobortis metus vel tempus.\n" +
 			"Praesent et congue magna. Integer egestas porta odio, vel tincidunt lectus posuere vel. Curabitur cursus pretium venenatis. Donec pretium sapien nulla, at eleifend ante maximus a. Nullam ullamcorper, ex non bibendum vestibulum, dui enim facilisis ligula, ut sodales leo odio eget justo. Quisque condimentum tristique libero eu scelerisque. Aliquam magna erat, malesuada vel tempus quis, viverra ac orci. Proin a sem et lorem commodo luctus a quis ante. Proin sed erat vulputate, congue magna id, condimentum quam.";
 		
-	public EditPane() {
-		super(30, 60);
-		setText(lorem);
-		// TODO Auto-generated constructor stub
-	}
-
+    public EditPane() {
+	super(30, 60);
+	setText(lorem);
+	// TODO Auto-generated constructor stub
+    }
+    
 }

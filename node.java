@@ -29,12 +29,6 @@ public class node implements Runnable{
     private Semaphore reqLockSem;
     private LockList firstLock;
     
-    /**
-     * initialises a node object
-     *
-     * @param      port    The port number
-     * @param      server  The IP-adress of the server
-     */
     public node(int port, DatagramSocket server){
 	
 	
@@ -214,11 +208,6 @@ public class node implements Runnable{
 	}
     }
     
-    /**
-     * Sends a list of connected nodes, as a string consisting of IP and port number
-     *
-     * @param      out   The outgoing socket.
-     */
     public void sendList(SocketAddress sock) throws IOException {
 	putPacket("" + (listOfSocket.size() + 1), sock);
 	for(int i = 0; i < listOfSocket.size(); i++) {
@@ -227,13 +216,6 @@ public class node implements Runnable{
 	}
     }
     
-    /**
-     * receives a list of connected nodes in the network (IP and port number)
-     *
-     * @param      in           ingoing socket
-     *
-     * @throws     IOException  regular IOException
-     */
     public void recieveList() throws IOException {
 	this.listOfSocket = new ArrayList<SocketAddress>();
 	int x = Integer.parseInt(getPacket().trim());
@@ -273,8 +255,6 @@ public class node implements Runnable{
 		e.printStackTrace();
 	    }
 	}
-	
-	
     }
     
     public void requestChange(String str, int offset, int length) throws IOException {
@@ -284,7 +264,6 @@ public class node implements Runnable{
 	    String msg = "M" + rank + ":" + offset + ":" + length + ":" + str;
 	    putPacket(msg,listOfSocket.get(0));
 	}
-	
     }
     
     
