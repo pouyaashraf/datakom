@@ -89,55 +89,55 @@ public class EditWindow extends JFrame implements WindowListener, MouseListener,
     }
     
     @Override
-	public void windowDeactivated(WindowEvent e) {
+    public void windowDeactivated(WindowEvent e) {
 	// TODO Auto-generated method stub
 	
     }
     
     @Override
-	public void windowDeiconified(WindowEvent e) {
+    public void windowDeiconified(WindowEvent e) {
 	// TODO Auto-generated method stub
 	
     }
     
     @Override
-	public void windowIconified(WindowEvent e) {
+    public void windowIconified(WindowEvent e) {
 	// TODO Auto-generated method stub
 	
     }
     
     @Override
-	public void windowOpened(WindowEvent e) {
+    public void windowOpened(WindowEvent e) {
 	// TODO Auto-generated method stub
 	
     }
     
     @Override
-	public void mouseClicked(MouseEvent arg0) {
+    public void mouseClicked(MouseEvent arg0) {
 	// TODO Auto-generated method stub
 	
     }
     
     @Override
-	public void mouseEntered(MouseEvent e) {
+    public void mouseEntered(MouseEvent e) {
 	// TODO Auto-generated method stub
 	
     }
     
     @Override
-	public void mouseExited(MouseEvent e) {
+    public void mouseExited(MouseEvent e) {
 	// TODO Auto-generated method stub
 	
     }
     
     @Override
-	public void mousePressed(MouseEvent e) {
+    public void mousePressed(MouseEvent e) {
 	// TODO Auto-generated method stub
 	
     }
     
     @Override
-	public void mouseReleased(MouseEvent e) {
+    public void mouseReleased(MouseEvent e) {
 	if(e.getButton() == MouseEvent.BUTTON1) {
 	    offset = lockView.getSelectionStart();
 	    length = lockView.getSelectionEnd() - offset;
@@ -162,7 +162,7 @@ public class EditWindow extends JFrame implements WindowListener, MouseListener,
     }
     
     @Override
-	public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e) {
 	String s = e.getActionCommand();
 	//System.out.println("Action: " + s);
 	if(s.equals("Cancel")) {
