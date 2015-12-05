@@ -53,10 +53,13 @@ public class node implements Runnable{
 		packet = new DatagramPacket(msg.getBytes(), msg.length(), server.getLocalSocketAddress());
 		socket.send(packet);
 		recieveList();
-	    }else{ //Om det �r den f�rsta noden
+	    }
+
+	    else{ //Om det �r den f�rsta noden
 		Main.server = this.socket;
 		this.rank = 0;
 	    }
+
 	    editWindow.setTitle("Rank " + rank);
 	    System.out.println("setup done: " + port);
 	} catch (IOException e) {
@@ -66,6 +69,7 @@ public class node implements Runnable{
     
     public void run(){
 		try {
+			/*SERVER MODE*/
 		    System.out.println("here "+ rank);
 		    String[] s;
 		    if(this.rank == 0){
@@ -145,7 +149,7 @@ public class node implements Runnable{
 				    }
 				}
 		    }else{
-				/*  client mode */
+				/*  CLIENT MODE */
 				while(true) {
 				    String input = getPacket();
 				    
@@ -219,13 +223,13 @@ public class node implements Runnable{
 		}	
     }
     
-    public void packetsToAll(String messageString) throws IOException {
-		for(int i = 0; i < listOfSocket.size(); i++) {
-		    SocketAddress s = listOfSocket.get(i);
-		    putPacket(messageString, s);
-		}
-	}
-    
+    /**
+     * sends a list of connected sockets to a specified node
+     *
+     * @param      sock         node to sent list to
+     *
+     * @throws     IOException  exceptional exception.
+     */
     public void sendList(SocketAddress sock) throws IOException {
 		putPacket("" + (listOfSocket.size() + 1), sock);
 		for(int i = 0; i < listOfSocket.size(); i++) {
@@ -234,6 +238,11 @@ public class node implements Runnable{
 		}
     }
     
+    /**
+     * recieves a list of sockets and adds them to own list of sockets.
+     *
+     * @throws     IOException  exceptional exception.
+     */
     public void recieveList() throws IOException {
 		this.listOfSocket = new ArrayList<SocketAddress>();
 		int x = Integer.parseInt(getPacket().trim());
@@ -248,20 +257,57 @@ public class node implements Runnable{
 	    	editWindow.addNode(sa);
 		}
     }
-    
-    private void putPacket(String str, SocketAddress dest) throws IOException {
-    	//System.out.println("putPacket(" + str + "," + dest + ")");
-    	packet = new DatagramPacket(str.getBytes(), str.length(), dest);
-    	socket.send(packet);
-    }
-    
+
+    /**
+     * receives a datagram packet
+     *
+     * @return     the received data represented as a string.
+     *
+     * @throws     IOException  exceptional exception
+     */
     private String getPacket() throws IOException {
     	receiveBuffer = new byte[BUFFER_SIZE];
     	packet = new DatagramPacket(receiveBuffer, BUFFER_SIZE);
     	socket.receive(packet);
     	return new String(receiveBuffer).trim();
     }
+     
+    /**
+     * sends a packet of information to a specified node in the network
+     *
+     * @param      str          message to be sent
+     * @param      dest         destination network node.
+     *
+     * @throws     IOException  exceptional exception
+     */
+    private void putPacket(String str, SocketAddress dest) throws IOException {
+    	//System.out.println("putPacket(" + str + "," + dest + ")");
+    	packet = new DatagramPacket(str.getBytes(), str.length(), dest);
+    	socket.send(packet);
+    }
     
+    /**
+     * sends a packet of information to all nodes in the list of connected nodes
+     *
+     * @param      messageString  message to send
+     *
+     * @throws     IOException    exceptional exception
+     */
+    public void packetsToAll(String messageString) throws IOException {
+		for(int i = 0; i < listOfSocket.size(); i++) {
+		    SocketAddress s = listOfSocket.get(i);
+		    putPacket(messageString, s);
+		}
+	}
+
+	/**
+	 * requests a lock to a specified region of the text buffer
+	 *
+	 * @param      offset       where the lock should begin
+	 * @param      length       length of the lock (in characters)
+	 *
+	 * @throws     IOException  exceptional exception
+	 */
     public void requestLock(int offset, int length) throws IOException {
     	if(rank == 0) {
 	    
@@ -276,6 +322,16 @@ public class node implements Runnable{
     	}
     }
     
+    /**
+     * sends a request to the server to change the contents of the buffer being edited
+     * (effectively pushing the changes made to the buffer to the server and all connected nodes.)
+     *
+     * @param      str          message string
+     * @param      offset       offset where the string begins
+     * @param      length       length of the string
+     *
+     * @throws     IOException  exceptional exception.
+     */
     public void requestChange(String str, int offset, int length) throws IOException {
     	if(rank == 0) {
 	    
