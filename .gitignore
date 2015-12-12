@@ -1,5 +1,5 @@
 .metadata
 .metadata/*
 *.class
-/datakom/*
+datakom/*
 *.DS_Store
