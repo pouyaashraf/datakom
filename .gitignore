@@ -2,3 +2,4 @@
 .metadata/*
 *.class
 /datakom/*
+*.DS_Store
