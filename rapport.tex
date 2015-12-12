@@ -43,7 +43,7 @@
 % \begin{minipage}{1.4\textwidth}
 % \begin{flushleft} 
 
-\large\emph{Author:}\\Ashraf, Pouya\\
+\large\emph{Authors:}\\Ashraf, Pouya\\
 					Billman, Linnar\\
 					Boström, Carl\\
 					Emrén, Krister\\[1.0cm]% Your name
@@ -80,15 +80,28 @@
 \tableofcontents
 \pagebreak
 
-\section{summary} % (fold)
+\section{Summary} % (fold)
 \label{sec:summary}
-This project had the aim to explore how one may approach the task of creating a system that runs on a distributed system, and how to solve the problems that occur with that task
+This project had the aim to explore how one may approach the task of creating a system that runs on a distributed system, and how to solve the problems that occur with that task.
 % section summary (end)
 
 \section{Introduction} % (fold)
 \label{sec:introduction}
-For this project we chose to implement a distributed buffer of sorts, which in turn implements a distributed server polling system, to ensure that the system will not fail when the designated server crashes/goes down (when the current server crashes, or loses connection with the connected nodes, a different node will take the erver responsibilities.).
+For this project we chose to implement a distributed buffer of sorts, which in turn implements a distributed server polling system, to ensure that the system will not fail when the designated server crashes/goes down (when the current server crashes, or loses connection with the connected nodes, a different node will take the server responsibilities.).
 % section introduction (end)
+
+\section{Original Design Idea} % (fold)
+\label{sec:original_design_idea}
+
+Initially, the project was envisioned as a distributed command line buffer, which also included a distributed server mechanism. The purpose of the distributed server mechanism was to ensure that the system would be able to recover by itself, in case the node currently acting as the server was to crash/get disconnected from the network. This was to be done by the server, which would with a fixed delay send the most recent information regarding the structure and hierarchy of the network to all connected nodes.
+% section original_design_idea (end)
+
+\section{Revised Design} % (fold)
+\label{sec:revised_design}
+
+
+
+% section revised_design (end)
 
 \section{The System} % (fold)
 \label{sec:the_system}
@@ -97,14 +110,48 @@ The system consists of $<$X$>$ main parts, outlined below.
 \subsection{Node.java} % (fold)
 \label{sub:node_java}
 
-
-
-\subsubsection{The Server Switching Mechanism} % (fold)
-\label{ssub:the_server_switching_mechanism}
-
-% subsubsection the_server_switching_mechanism (end)
 % subsection node_java (end)
+
+\subsection{LockList.java} % (fold)
+\label{sub:locklist_java}
+
+LockList is a class designed as a linked list, with the sole purpose of keeping track of which nodes have requested write access to which parts of the text. For instance, if node no.3 requests write access to a file att offset 450 bytes, and length of segment 100 bytes, other nodes will be unable to write information in that segment of the file (between offset 450 and 550 bytes) until node no.3 forfeits its privileges.
+% subsection locklist_java (end)
+
+\subsection{EditPane.java \& EditWindow.java} % (fold)
+\label{sub:editpane}
+
+EditPane and EditWindow are classes designed to display information to the user. This information consists of the file currently being edited, status/error messages and a means to cancel/submit the changes that have been made to the server. The graphical interface is entirely cross platform, since it builds on the Java Swing framework.
+% subsection editpane (end)
+
 % section the_system (end)
+
+\section{Results and Discussion} % (fold)
+\label{sec:results_and_discussion}
+
+\subsection{What we did right} % (fold)
+\label{sub:what_we_did_right}
+
+% subsection what_we_did_right (end)
+
+\subsection{What could have been implemented better} % (fold)
+\label{sub:what_could_have_been_implemented_better}
+
+% subsection what_could_have_been_implemented_better (end)
+
+% section results_and_discussion (end)
+
+\subsection{Possible Further Development} % (fold)
+\label{sub:possible_further_development}
+
+% subsection possible_further_development (end)
+
+\section{Conclusions} % (fold)
+\label{sec:conclusions}
+
+% section conclusions (end)
+
+\end{document}
 
 %------------------------------------------
 %	picture, copy and paste appropriately
@@ -114,5 +161,3 @@ The system consists of $<$X$>$ main parts, outlined below.
 % \includegraphics[width=0.8\textwidth]{picture.png}
 % \caption{\label{fig:picture}Caption}
 % \end{figure}
-
-\end{document}
