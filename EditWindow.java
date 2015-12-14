@@ -165,7 +165,7 @@ public class EditWindow extends JFrame implements WindowListener, MouseListener,
 		    editView.setText(lockView.getSelectedText());
 		    cancel.setEnabled(true);
 		    submit.setEnabled(true);
-		    System.out.println("off=" + offset + ", len=" + length + ", txt='" + lockView.getSelectedText() + "'");
+		    //System.out.println("off=" + offset + ", len=" + length + ", txt='" + lockView.getSelectedText() + "'");
 		}
     }
     

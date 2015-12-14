@@ -69,13 +69,14 @@ public class node implements Runnable{
     
     public void run(){
 		try {
-			/*SERVER MODE*/
 		    System.out.println("here "+ rank);
 		    String[] s;
 		    if(this.rank == 0){
-				while(true){ 
+				/*SERVER MODE*/
+				while(true){
+					debug("Wait on packet");
 				    String input = getPacket();
-			    	System.out.println("Server get: " + input);
+			    	//System.out.println("Server get: " + input);
 				    switch(input.charAt(0)) {
 				    case 'J':
 				    	SocketAddress newNode = packet.getSocketAddress();
@@ -92,7 +93,7 @@ public class node implements Runnable{
 						int offset = Integer.parseInt(s[1].trim());
 						int length = Integer.parseInt(s[2].trim());
 						
-						System.out.println("Lock request: " + nodeID + "," + offset + "," + length);
+						//System.out.println("Lock request: " + nodeID + "," + offset + "," + length);
 						if(this.firstLock == null){
 						    firstLock = new LockList(offset, length);
 						    editWindow.addLock(firstLock);
@@ -151,9 +152,10 @@ public class node implements Runnable{
 		    }else{
 				/*  CLIENT MODE */
 				while(true) {
-				    String input = getPacket();
+					debug("Wait on packet");
+					String input = getPacket();
 				    
-				    System.out.println("" + rank + ": " + input);
+				    //System.out.println("" + rank + ": " + input);
 				    switch(input.charAt(0)) {
 				    case 'N':
 				    	s = input.substring(1).split(":");
@@ -166,7 +168,7 @@ public class node implements Runnable{
 				    	int nodeID = Integer.parseInt(s[0].trim());
 				    	int offset = Integer.parseInt(s[1].trim());
 				    	int length = Integer.parseInt(s[2].trim());
-				    	System.out.println("My rank: " + rank + ", node: " + nodeID);
+				    	//System.out.println("My rank: " + rank + ", node: " + nodeID);
 				    	if(nodeID == rank) {
 						    reqLockSem.release();
 						}
@@ -213,9 +215,10 @@ public class node implements Runnable{
 			        		firstLock = l.getNext();
 			        	}
 			        	l.remove();
+			        	break;
 					}
 				    	
-					break;
+					
 			    }
 			}
 		} catch (IOException e) {
@@ -269,7 +272,9 @@ public class node implements Runnable{
     	receiveBuffer = new byte[BUFFER_SIZE];
     	packet = new DatagramPacket(receiveBuffer, BUFFER_SIZE);
     	socket.receive(packet);
-    	return new String(receiveBuffer).trim();
+    	String s = new String(receiveBuffer).trim();
+    	debug(s);
+    	return s;
     }
      
     /**
@@ -281,7 +286,7 @@ public class node implements Runnable{
      * @throws     IOException  exceptional exception
      */
     private void putPacket(String str, SocketAddress dest) throws IOException {
-    	//System.out.println("putPacket(" + str + "," + dest + ")");
+    	debug("putPacket(" + str + "," + dest + ")");
     	packet = new DatagramPacket(str.getBytes(), str.length(), dest);
     	socket.send(packet);
     }
@@ -340,5 +345,16 @@ public class node implements Runnable{
     		putPacket(msg,listOfSocket.get(0));
     	}
     }
+    
+    /**
+     * prints a text string, prepending the rank of the node
+     * 
+     *  @param	str			message string
+     *  
+     */
+    public void debug(String msg) {
+    	System.out.println(rank + ": " + msg);
+    }
+    
 
 }
