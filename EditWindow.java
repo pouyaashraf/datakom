@@ -155,7 +155,10 @@ public class EditWindow extends JFrame implements WindowListener, MouseListener,
 		    }
 		    status.setText("Requesting lock ...");
 		    try {
-		    	nod.requestLock(offset, length);
+		    	if( !nod.requestLock(offset, length)) {
+		    		lockView.setSelectionEnd(lockView.getSelectionStart());
+		    		return;
+		    	}
 		    } catch (IOException e1) {
 				status.setText("I/O error");
 				e1.printStackTrace();
@@ -187,6 +190,8 @@ public class EditWindow extends JFrame implements WindowListener, MouseListener,
 		    } catch (IOException e1) {
 		    	e1.printStackTrace();
 		    }
+    		lockView.setSelectionEnd(lockView.getSelectionStart());
+    		editView.setText("");
 		    cancel.setEnabled(false);
 		    submit.setEnabled(false);
 		}

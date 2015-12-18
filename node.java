@@ -28,6 +28,7 @@ public class node implements Runnable{
     private byte[] receiveBuffer;
     private Semaphore reqLockSem;
     private LockList firstLock;
+    private boolean gotLock;
     
     public node(int port, DatagramSocket server){
 	
@@ -58,6 +59,7 @@ public class node implements Runnable{
 	    else{ //Om det �r den f�rsta noden
 		Main.server = this.socket;
 		this.rank = 0;
+		editWindow.setVisible(false);
 	    }
 
 	    editWindow.setTitle("Rank " + rank);
@@ -101,20 +103,31 @@ public class node implements Runnable{
 						}
 						else{
 						    LockList l = LockList.findFirstAfter(this.firstLock, offset);
-						    if(l.getPrevious() == null) {
-						    	/* first entry has a higher offset, so insert before it */
-						    	if((offset + length) < l.getOffset()) {
-						    		/* ... assuming this lock ends before next starts */
-						    		firstLock = new LockList(offset, length, firstLock);
-						    		editWindow.addLock(firstLock);
-							    	packetsToAll(input);
+						    if(l != null){
+						    	if(l.getPrevious() == null) {
+						    		/* first entry has a higher offset, so insert before it */
+						    		if((offset + length) < l.getOffset()) {
+						    			/* ... assuming this lock ends before next starts */
+						    			firstLock = new LockList(offset, length, firstLock);
+						    			editWindow.addLock(firstLock);
+						    			packetsToAll(input);
+						    		}
+						    		else {
+						    			putPacket("E", listOfSocket.get(nodeID - 1));
+						    		}
+						    	} else {
+						    		if((l.getPrevious().getOffset() + l.getPrevious().getLength()) < offset &&
+						    			((offset + length) < l.getOffset())) {
+						    			editWindow.addLock(new LockList(offset, length, l));
+						    			packetsToAll(input);
+						    		}
+						    		else{
+						    			putPacket("E", listOfSocket.get(nodeID - 1));
+						    		}
 						    	}
-						    } else {
-						    	if((l.getPrevious().getOffset() + l.getPrevious().getLength()) < offset &&
-						    		((offset + length) < l.getOffset())) {
-						    		editWindow.addLock(new LockList(offset, length, l));
-						    		packetsToAll(input);
-						    	}
+						    }
+						    else{
+						    	putPacket("E", listOfSocket.get(nodeID - 1));
 						    }
 						}
 						break;
@@ -145,6 +158,9 @@ public class node implements Runnable{
 				        	}
 				        	l.remove();
 				    	}
+				    	else {
+				    		debug("Error: no lock found for M");
+				    	}
 				    	
 				    	break;
 				    }
@@ -170,6 +186,7 @@ public class node implements Runnable{
 				    	int length = Integer.parseInt(s[2].trim());
 				    	//System.out.println("My rank: " + rank + ", node: " + nodeID);
 				    	if(nodeID == rank) {
+				    		gotLock = true;
 						    reqLockSem.release();
 						}
 						
@@ -194,14 +211,20 @@ public class node implements Runnable{
 						    }
 						}
 						break;
+				    case 'E':
+				    	this.editWindow.setStatus("Could not aquire lock for region");
+				    	gotLock = false;
+				    	reqLockSem.release();
+				    	break;
 				    case 'M':
 				    	s = input.substring(1).split(":");
 						nodeID = Integer.parseInt(s[0].trim());
 						offset = Integer.parseInt(s[1].trim());
 						length = Integer.parseInt(s[2].trim());
 						String txt = s[3];
-						editWindow.updateText(txt, offset, offset + length);
-				    	LockList l = LockList.findByOffset(firstLock, offset);
+						
+						LockList l = LockList.findByOffset(firstLock, offset);
+						editWindow.updateText(txt, offset, offset + l.getLength());
 		
 			        	int delta = l.getLength() - length;
 			        	LockList afterL = l.getNext();
@@ -280,9 +303,6 @@ public class node implements Runnable{
     /**
      * sends a packet of information to a specified node in the network
      *
-     * @param      str          message to be sent
-     * @param      dest         destination network node.
-     *
      * @throws     IOException  exceptional exception
      */
     private void putPacket(String str, SocketAddress dest) throws IOException {
@@ -313,9 +333,9 @@ public class node implements Runnable{
 	 *
 	 * @throws     IOException  exceptional exception
 	 */
-    public void requestLock(int offset, int length) throws IOException {
+    public boolean requestLock(int offset, int length) throws IOException {
     	if(rank == 0) {
-	    
+    		
     	} else {
     		String msg = "L" + rank + ":" + offset + ":" + length;
     		putPacket(msg,listOfSocket.get(0));
@@ -325,6 +345,7 @@ public class node implements Runnable{
     			e.printStackTrace();
     		}
     	}
+    	return gotLock;
     }
     
     /**
