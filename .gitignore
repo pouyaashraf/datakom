@@ -3,3 +3,4 @@
 *.class
 datakom/*
 *.DS_Store
+.recommenders/*

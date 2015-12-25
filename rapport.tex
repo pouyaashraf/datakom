@@ -82,38 +82,36 @@
 
 \section{Summary} % (fold)
 \label{sec:summary}
-This project had the aim to explore how one may approach the task of creating a system that runs on a distributed system, and how to solve the problems that occur with that task.
+This project had the aim to explore how one may approach the task of creating a system that runs on a distributed system, and how to solve the many potential problems that may occur with that task.
 % section summary (end)
 
 \section{Introduction} % (fold)
 \label{sec:introduction}
-For this project we chose to implement a distributed buffer of sorts, which in turn implements a distributed server polling system, to ensure that the system will not fail when the designated server crashes/goes down (when the current server crashes, or loses connection with the connected nodes, a different node will take the server responsibilities.).
+For this project we chose to implement a distributed buffer of sorts, which in turn relies on a distributed server polling mechanism, which ensures that the system will not fail when the designated server crashes/goes down (when the current server crashes, or loses connection with the other connected nodes, a different node will take the server responsibilities).
 % section introduction (end)
 
 \section{Original Design Idea} % (fold)
 \label{sec:original_design_idea}
-
 Initially, the project was envisioned as a distributed command line buffer, which also included a distributed server mechanism. The purpose of the distributed server mechanism was to ensure that the system would be able to recover by itself, in case the node currently acting as the server was to crash/get disconnected from the network. This was to be done by the server, which would with a fixed delay send the most recent information regarding the structure and hierarchy of the network to all connected nodes.
 % section original_design_idea (end)
 
 \section{Revised Design} % (fold)
 \label{sec:revised_design}
-
 The revised design was simply a more detailed list of the original design idea.
 \\\\
 Sever part:
 \begin{itemize}
-\item Has the responsibility to choose the next server, vice server and 3rd vice server. This is to create a server hierarchy in case on server would die.
+\item Has the responsibility to order the connected nodes by rank, so that the correct node will assume server responsibilities in case the current server goes down.
 \item  Should always have the latest version of the material being edited, to be able to quickly distribute it to the other connected nodes.
 \item Decide whether to grant or deny a node access to the shared resource.
 \item Needs to keep track of which locked segment belongs to which node.
-\item Regularly checks to see if a node is still alive to, if possible, unlock a locked resource.
+\item Regularly checks to see if a node is still alive so that it can, if possible, unlock access to a locked resource.
 \end{itemize}
 Client part:
 \begin{itemize}
-\item Continously listens to the server, to be able to quickly update information about the file currently being edited. 
-\item Regularly save the information from the server to update its local text file. 
-\item Needs to ask permission from server to edit file at a given segment. If this is granted. The client may edit the file. When finished, the client will tell the server so that the server can update the information and unlock the resource.
+\item Continuously listens to the server, to be able to quickly respond in a correct manner to different network events. 
+\item Regularly saves the information from the server to update its local text file. 
+\item Needs to ask permission from server to edit file at a given segment. If this is granted. The client may edit the file. When finished, the client will tell the server so that the server can update the information, distribute it to the other nodes, and ultimately unlock the resource.
 \end{itemize}
 
 
@@ -125,8 +123,7 @@ The main parts of the system are outlined below.
 
 \subsection{Node.java} % (fold)
 \label{sub:node_java}
-
-This is the main part of the system. The Node class has two parts; one server part and one client part. This makes the node able to act not only as client, but also as server if need be (so that we don't have to instantiate a new object when we want to switch between client mode and server mode). When a node is created, it receives a rank depending on the number of existing nodes in the system (starting from zero). For example if there are 7 nodes in the system, a new connection will recieve rank 7. The node with rank 0 acts as server. The new node also receives a list of socket information to all the other nodes. It is designed this way so that if the server were to die, the next node in the list (rank 1) would easily be able to take on the server responsibility. However, we did not have the time to implement the "server switch" (see section \ref{sub:possible_further_development}). 
+This is the main part of the system. The Node class has two parts; one server part and one client part. This makes the node able to act not only as client, but also as server if need be (so that we don't have to instantiate a new object when we want to switch between client mode and server mode). When a node is created, it receives a rank depending on the number of existing nodes in the system (starting from zero). For example if there are 7 nodes in the system, a new connection will receive rank 7. The node with rank 0 acts as server. The new node also receives a list of socket information to all the other nodes. It is designed this way so that if the server were to die, the next node in the list (rank 1) would easily be able to take on the server responsibility. However, we did not have the time to implement the "server switch" (see section \ref{sub:possible_further_development}). 
 \\\\
 The client side of the node class is designed to communicate only with the node currently acting as the server, while the server side communicates with all the other nodes. 
 
@@ -134,54 +131,43 @@ The client side of the node class is designed to communicate only with the node 
 
 \subsection{LockList.java} % (fold)
 \label{sub:locklist_java}
-
-LockList is a class designed as a linked list, with the sole purpose of keeping track of which nodes have requested write access to which parts of the text. For instance, if node no.3 requests write access to a file att offset 450 bytes, and length of segment 100 bytes, other nodes will be unable to write information in that segment of the file (between offset 450 and 550 bytes) until node no.3 forfeits its privileges.
+LockList is a class designed as a linked list, with the sole purpose of keeping track of which nodes have requested write access to which parts of the text. For instance, if node no.3 requests write access to a file at offset 450 bytes, and length of segment 100 bytes, other nodes will be unable to write information in that segment of the file (between offset 450 and 550 bytes) until node no.3 forfeits its privileges.
 % subsection locklist_java (end)
 
 \subsection{EditPane.java \& EditWindow.java} % (fold)
 \label{sub:editpane}
-
-EditPane and EditWindow are classes designed to display information to the user. This information consists of the file currently being edited, status/error messages and a means to cancel/submit the changes that have been made to the server. The graphical interface is entirely cross platform, since it is built on the Java Swing framework.
+EditPane and EditWindow are classes designed to display information to the user. This information consists of the file currently being edited, status/error messages and means to cancel the changes, or to submit them to the server. The graphical interface is entirely cross platform, since it is built on the Java Swing framework.
 % subsection editpane (end)
 
 % section the_system (end)
 
 \section{Results and Discussion} % (fold)
 \label{sec:results_and_discussion}
-
-The resulting prototype is a distributed text editor system where one node acts as server and every client has a text window where you can highlight the part of the text you want to edit. This locks the text region for your use only. When finished editing, your press submit to unlock the region and to update every client's text window. Each node has the capability to act as server. However in this prototype only one node will act as server as the polling system is not yet implemented. 
+The resulting prototype is a distributed text editor system where one node acts as server and every client has a text window where you can highlight the part of the text you want to edit. Doing so locks the text region for your use only. When finished editing, you press the submit button to send the changes to the server, unlock the region, and update every client's text window. Each node has the capability to act as server, in this prototype however, only one node will act as server as the polling system is not yet implemented. 
 
 \subsection{What we did right} % (fold)
 \label{sub:what_we_did_right}
-
-What we did right was structure, planning and priority. We began the project by planning all the parts of the system thoroughly and made up our priorities. We decided which parts and attributes of the system were more important than others. Even though we did not have the time to implement everything we had planned, we feel happy with the decisions we made throughout the project. Thanks to the planning we made we have also laid the ground work for some further development (see section \ref{sub:possible_further_development}). 
+What we did right was structure, planning and priority. We began the project by thoroughly planning all the parts of the system, and making clear priorities. We decided which parts and attributes of the system were more important than others. Even though we did not have the time to implement everything we had initially planned, we feel content with the decisions we made throughout the project. Thanks to the planning we made we have also laid the ground work for some further development (see section \ref{sub:possible_further_development}). 
 
 % subsection what_we_did_right (end)
 
 \subsection{What could have been implemented better} % (fold)
 \label{sub:what_could_have_been_implemented_better}
-
-In the current prototype, the main part which could have been implemented better is the locklist. This was designed to save all the current locks in a linked list to keep track of them to be able to update the information of the locks in case of text edits. If one node updated its text, the locklist was to update the offset of all the locks that occurred after the edited region so that they would still cover the correct part of the text. However, this did not work as intended and did not update the offsets correctly. Another small detail which could be implemented with more finesse is in case the text window is empty. In the current prototype one needs to highlight at least one character to be able to lock and edit. 
-
-
+In the current prototype, the main part which could have been implemented in a better way is the LockList. This class was designed to save all the current locks in a linked list data structure to keep track of them to be able to update the information of the locks in case of text edits. If one node updated its text, the LockList was to update the offset of all the locks that occurred after the edited region so that they would still cover the correct part of the text. However, this did not work as intended and did not update the offsets correctly. Another small detail which could be implemented with more finesse is the case where the text window (or selection) is empty. In the current prototype one needs to have a minimum of one (1) character in the file to be able to edit it at all. 
 % subsection what_could_have_been_implemented_better (end)
 
 \subsection{Possible Further Development} % (fold)
 \label{sub:possible_further_development}
-
-The first possible further development was the part we planned, but didn't have the time to implement: the polling system making it possible for another node in the network to take server responsibilities in case the current server goes down/disconnects from the notwork. We have designed the system to be able to handle this. Each node has the capability to act as server, and each node has the capability to switch communication to the new server. However, the current prototype has no way of knowing when the server has died and the nodes can't do the transition from client to server. 
+The first possible further development was the part we planned, but didn't have the time to implement; the polling system making it possible for another node in the network to assume server responsibilities in case the current server goes down/disconnects from the notwork. We have designed the system to be able to handle this. Each node has the capability to act as server, and each node has the capability to switch communication to the new server. However, the current prototype has no way of knowing when the server has died and the nodes aren't capable of doing the transition from client to server mode. 
 \\\\
-Other further developments are, for instance the design of the GUI/text editor, which could be more user friendly. It would also be nice to implement some kind of programming support for the text editor, like syntax highlighting and automatic indenting for example (which in the end could be quite complex to implement, since different languages have different syntax, and use indenting in differing ways).
-
-
+Other further developments are, for instance the design of the GUI/text editor, which could be more user friendly. It would also be nice to implement some kind of programming support for the text editor, e.g. syntax highlighting and automatic indenting (which in the end could be quite complex to implement, since different languages have different syntax, and use indentation in differing ways).
 % subsection possible_further_development (end)
 
 % section results_and_discussion (end)
 
 \section{Conclusions} % (fold)
 \label{sec:conclusions}
-
-The current prototype is not as refined and advances as we had hoped. With more time on our hands we might have been able to implement something greater. However, we are happy with our performance and are quite pleased with our product so far. We also feel that we have learned a lot throughout this project. We have touched the surface of the many possibilities of distributed systems.
+The current prototype is not as refined and advanced as we had hoped. With more time on our hands we might have been able to implement something closer to our initial plans/ideas, never the less, we are happy with our performance and are quite pleased with our product so far. We also feel that we have learned a lot throughout this project. We have touched the surface of the many possibilities of distributed systems.
 
 % section conclusions (end)
 
